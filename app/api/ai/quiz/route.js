@@ -41,7 +41,7 @@ export async function POST(request) {
     const truncatedText = sourceText.substring(0, 30000);
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     const prompt = `You are an expert quiz creator. Based on the following educational content, generate a multiple-choice quiz.
 

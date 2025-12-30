@@ -21,53 +21,14 @@ def get_proxy_dict(proxy_url):
     }
 
 def fetch_transcript(video_id, languages=['en']):
-    # 1. Try without proxy first
     try:
-        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-        
-        # Try to find manually created transcript
-        try:
-            transcript = transcript_list.find_manually_created_transcript(languages)
-        except NoTranscriptFound:
-            # Fallback to generated
-            try:
-                transcript = transcript_list.find_generated_transcript(languages)
-            except NoTranscriptFound:
-                 # If specific lang not found, get any english or the first available and translate
-                 # For now, just getting the first available
-                 transcript = transcript_list.find_transcript(languages)
-
-        return transcript.fetch()
-
-    except (TranscriptsDisabled, NoTranscriptFound) as e:
-        # Fatal errors that proxy won't fix
-        return {"error": str(e)}
+        # Create instance and fetch
+        api = YouTubeTranscriptApi()
+        transcript = api.fetch(video_id, languages=languages)
+        # Convert to list of dicts for JSON serialization
+        return [{"text": s.text, "start": s.start, "duration": s.duration} for s in transcript.snippets]
     except Exception as e:
-        # If rate limited or connection error, try proxies
-        print(f"Direct fetch failed: {e}, trying proxies...", file=sys.stderr)
-        pass
-
-    # 2. Try with proxies
-    # Shuffle proxies to distribute load
-    random.shuffle(PROXIES)
-    
-    for proxy in PROXIES:
-        try:
-            proxies_dict = get_proxy_dict(proxy)
-            
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id, proxies=proxies_dict)
-            
-            try:
-                transcript = transcript_list.find_manually_created_transcript(languages)
-            except NoTranscriptFound:
-                transcript = transcript_list.find_generated_transcript(languages)
-            
-            return transcript.fetch()
-            
-        except Exception as e:
-            continue
-
-    return {"error": "Could not fetch transcript (all attempts failed)."}
+        return {"error": f"Could not fetch transcript: {str(e)}"}
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

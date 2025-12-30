@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { Edit2, Save, X, User, Mail, Camera } from "lucide-react";
 
 export default function ProfilePage() {
@@ -18,7 +19,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/api/auth/signin");
+      toast.error("Please login first to view your profile");
+      signIn("google");
     }
   }, [status, router]);
 

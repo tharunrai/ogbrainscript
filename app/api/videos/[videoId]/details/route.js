@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 const isYouTubeId = (str) => /^[A-Za-z0-9_-]{11}$/.test(str);
 
 export async function GET(request, { params }) {
-  const { videoId } = params;
+  const { videoId } = await params;
 
   if (!isYouTubeId(videoId)) {
     return NextResponse.json(

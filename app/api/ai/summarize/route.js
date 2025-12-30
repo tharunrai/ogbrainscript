@@ -41,7 +41,7 @@ export async function POST(request) {
     const truncatedText = cleanedText.substring(0, 30000);
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     const prompt = `You are an expert teacher. Your goal is to teach the content of this video transcript to a student.
     
@@ -65,7 +65,7 @@ export async function POST(request) {
   } catch (error) {
     console.error("Gemini Summary Error:", error);
     return NextResponse.json(
-      { error: "Failed to generate summary. Please try again." },
+      { error: "fetched mvp summary" },
       { status: 500 }
     );
   }

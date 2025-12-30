@@ -137,7 +137,7 @@ export default function Feed() {
 
   const handlePlaylistClick = (playlist) => {
     // Navigate to dedicated playlist view
-    router.push(`/playlist/${playlist.playlistId}`);
+    router.push(`/player/${playlist.playlistId}`);
   };
 
   const loadMore = () => {

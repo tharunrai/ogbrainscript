@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import Link from "next/link";
 import { Play, Clock, AlertCircle, BookOpen, ChevronRight } from "lucide-react";
 import SkeletonLoader from "../components/SkeletonLoader";
@@ -21,7 +22,8 @@ export default function Learning() {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/api/auth/signin");
+      toast.error("Please login first to access your learning history");
+      signIn("google");
       return;
     }
 
@@ -227,7 +229,7 @@ export default function Learning() {
               {playlists.slice(0, 4).map((playlist) => (
                 <Link
                   key={playlist._id}
-                  href={`/playlist/${playlist._id}`}
+                  href={`/player/${playlist._id}`}
                   className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all"
                 >
                   <div className="aspect-video bg-gray-100 relative">

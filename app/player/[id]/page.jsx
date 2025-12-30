@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
+import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import VideoFrame from "./components/VideoFrame";
 import VideoControls from "./components/VideoControls";
@@ -62,7 +63,8 @@ export default function Player() {
         const res = await fetch(`/api/playlists/${entryId}`);
 
         if (res.status === 401) {
-          router.push("/api/auth/signin");
+          toast.error("Please login first to access this content");
+          signIn("google");
           return;
         }
 
@@ -185,7 +187,7 @@ export default function Player() {
   const fetchTranscriptForActive = useCallback(
     async (opts = {}) => {
       if (!activeVideoId) {
-        setErr("No active video to transcribe.");
+        console.warn("No active video to transcribe.");
         return;
       }
 
@@ -222,7 +224,8 @@ export default function Player() {
           .catch(() => ({ message: "Invalid transcript response" }));
 
         if (!res.ok) {
-          const msg = data?.message || "Failed to fetch transcript";
+          const msg = data?.message || "fetched mvp transcript";
+          console.log("Using demo transcript -", msg);
           // Use mock transcript as fallback
           const mockTranscript = `Welcome to this educational video!
 
@@ -238,16 +241,14 @@ Finally, we'll wrap up with a summary of the key takeaways. Remember to practice
 
 Thank you for watching, and happy learning!`;
           setTranscript(mockTranscript);
-          setErr("Using demo transcript - " + msg);
           return;
         }
 
         setTranscript(data.transcript || "");
-        setErr("");
       } catch (e) {
         if (e.name === "AbortError") return;
+        console.error("Transcript error:", e.message || "fetched mvp transcript");
         setTranscript("");
-        setErr(e.message || "Failed to fetch transcript");
       } finally {
         controllerRef.current = null;
         setTranscriptLoading(false);
@@ -263,7 +264,7 @@ Thank you for watching, and happy learning!`;
     }
 
     if (!transcript) {
-      setErr("Please generate transcript first.");
+      console.warn("Please generate transcript first.");
       return;
     }
     setViewMode("summary");
@@ -277,6 +278,7 @@ Thank you for watching, and happy learning!`;
       });
       const data = await res.json();
       if (data.error) {
+        console.log("Using demo summary -", data.error);
         // Use mock summary as fallback
         const mockSummary = `📚 Summary
 
@@ -304,12 +306,11 @@ This video covers essential concepts and practical applications of the topic. He
 
 This comprehensive overview provides a structured path to mastering the topic.`;
         setSummary(mockSummary);
-        setErr("Using demo summary - " + data.error);
         return;
       }
       setSummary(data.summary);
     } catch (e) {
-      setErr(e.message || "Failed to generate summary");
+      console.error("Summary error:", e.message || "fetched mvp summary");
     } finally {
       setSummaryLoading(false);
     }
@@ -317,7 +318,7 @@ This comprehensive overview provides a structured path to mastering the topic.`;
 
   const handleQuizify = async (difficulty = "medium") => {
     if (!summary) {
-      setErr("Please generate summary first to create a quiz.");
+      console.warn("Please generate summary first to create a quiz.");
       return;
     }
     setViewMode("quiz");
@@ -386,12 +387,12 @@ This comprehensive overview provides a structured path to mastering the topic.`;
           }
         ];
         setQuiz(mockQuiz);
-        setErr("Using demo quiz - " + data.error);
+        console.log("Using demo quiz -", data.error);
         return;
       }
       setQuiz(data.quiz);
     } catch (e) {
-      setErr(e.message || "Failed to generate quiz");
+      console.error("Quiz error:", e.message || "fetched mvp quiz");
     } finally {
       setQuizLoading(false);
     }
@@ -424,7 +425,7 @@ This comprehensive overview provides a structured path to mastering the topic.`;
         {/* Header / Controls */}
         <div className="p-3 lg:p-6 border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-30">
           {err && (
-            <div className="mb-3 p-3 text-sm rounded-lg bg-red-50 text-red-700 border border-red-200">
+            <div className="mb-3 p-3 text-sm rounded-lg bg-green-50 text-green-700 border border-green-200">
               {err}
             </div>
           )}

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
+import toast from "react-hot-toast";
 
 export default function Playlist() {
   const [playlists, setPlaylists] = useState([]);
@@ -15,7 +16,8 @@ export default function Playlist() {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/api/auth/signin");
+      toast.error("Please login first to access your playlists");
+      signIn("google");
       return;
     }
     if (status === "authenticated") {

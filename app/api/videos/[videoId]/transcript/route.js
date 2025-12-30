@@ -1,11 +1,10 @@
-import { YoutubeTranscript } from "youtube-transcript";
 import { NextResponse } from "next/server";
-import ytdl from "@distube/ytdl-core";
+import { runPython } from "@/lib/utils/runPython";
 
 const isYouTubeId = (str) => /^[A-Za-z0-9_-]{11}$/.test(str);
 
 export async function GET(request, { params }) {
-  const { videoId } = params;
+  const { videoId } = await params;
   const { searchParams } = new URL(request.url);
   const lang = searchParams.get("lang") || "en";
 
@@ -17,33 +16,25 @@ export async function GET(request, { params }) {
   }
 
   try {
-    const transcript = await YoutubeTranscript.fetchTranscript(videoId, {
-      lang: lang,
-    });
+    // Use Python script for more reliable transcript fetching
+    const langs = lang.split(",").map(l => l.trim()).join(",");
+    console.log(`[Transcript API] Fetching transcript for ${videoId} with langs: ${langs}`);
+    
+    const result = await runPython("fetch_transcript.py", [videoId, langs]);
+    console.log(`[Transcript API] Python result:`, result);
 
-    if (!transcript || transcript.length === 0) {
+    if (result.error) {
+      console.error(`[Transcript API] Python returned error:`, result.error);
       return NextResponse.json(
-        { error: `Transcript not found for videoId=${videoId} in lang=${lang}` },
+        { error: result.error },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ videoId, transcript });
+    return NextResponse.json({ videoId, transcript: result });
   } catch (e) {
     console.error("Transcript fetch error:", e);
-
-    if (e.message?.includes("disabled")) {
-      return NextResponse.json(
-        { error: "Transcripts are disabled." },
-        { status: 403 }
-      );
-    }
-    if (e.message?.includes("not found")) {
-      return NextResponse.json(
-        { error: "Transcript not found." },
-        { status: 404 }
-      );
-    }
+    console.error("Error stack:", e.stack);
 
     return NextResponse.json(
       {

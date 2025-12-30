@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import ActivityChart from "./components/ActivityChart";
 import StatsCards from "./components/StatsCards";
 import QuizHistory from "./components/QuizHistory";
@@ -19,7 +20,8 @@ const Dashboard = () => {
     if (status === "loading") return;
 
     if (status === "unauthenticated") {
-      router.push("/api/auth/signin");
+      toast.error("Please login first to access the dashboard");
+      signIn("google");
       return;
     }
 

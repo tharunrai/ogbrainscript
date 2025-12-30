@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
+import toast from "react-hot-toast";
 import {
   Play,
   FileText,
@@ -92,6 +93,7 @@ export default function Home() {
         });
 
         if (res.status === 401) {
+          toast.error("Please login first to add playlists");
           if (typeof sessionStorage !== "undefined") {
             try {
               sessionStorage.setItem(
@@ -102,7 +104,7 @@ export default function Home() {
               console.warn("Could not save pending redirect", e);
             }
           }
-          router.push("/api/auth/signin");
+          signIn("google");
           return;
         }
 
